@@ -316,6 +316,9 @@
     <Compile Include="include\driver_init.h">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="include\nvmctrl_basic.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="include\port.h">
       <SubType>compile</SubType>
     </Compile>
@@ -356,6 +359,9 @@
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="src\driver_init.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\nvmctrl_basic.c">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="src\protected_io.S">

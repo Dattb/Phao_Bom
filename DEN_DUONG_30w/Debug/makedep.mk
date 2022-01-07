@@ -20,6 +20,8 @@ src\cpuint.c
 
 src\driver_init.c
 
+src\nvmctrl_basic.c
+
 src\protected_io.S
 
 src\rtc.c
