@@ -9,6 +9,10 @@
 #ifndef RANG_DONG_H_
 #define RANG_DONG_H_
 
+#define TRAINING_TIME       7200    //s
+#define TRAINING_OUT_CNT	5	    //s
+#define TOGGLE_TIME         2		//s
+#define FLASH_ADDR	    	70
 
 #include <atmel_start.h>
 
@@ -69,5 +73,6 @@ bool rd_io_read(rd_port_t port,unsigned char pin);
 void rd_led_init();
 void rd_io_set_output(rd_port_t port,unsigned char pin);
 void rd_io_write(rd_port_t port,unsigned char pin,unsigned char level);
-
+void rd_blink_led();
+void rd_clear_check_ou_in(unsigned char *data1,unsigned char *data2);
 #endif /* RANG_DONG_H_ */

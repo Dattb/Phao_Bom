@@ -5,21 +5,22 @@ extern unsigned char RD_rtc_call_back_flag;
 bool uart_send_flag_old = 0 ,uart_send_flag_new = 0 ;
 unsigned long pum_cnt = 0;
 bool boot_flag = 0;
+unsigned char check_out_train = 0;
+extern unsigned char check_in_train;
 /*extern __attribute__ ((section (".noinit")))*/ rd_data rtc_save_data;
 /*extern __attribute__ ((section (".noinit")))*/ rd_mode Mode;  // khai bao bien khong khoi tao
 
-//#define RESET_TRAINING			
+//#define RESET_TRAINING		// luu y khi san xuat code nay se khong duoc chay, chi chay de test	
 //#define  RD_DEBUG_UART
-#define TRAINING_TIME       7200  //s
-#define TRAINING_OUT_CNT	5	//s
-#define TOGGLE_TIME     2		//s
-#define FLASH_ADDR		70
+
 unsigned char flash_training_flag = 0;
 unsigned char training_out_cnt = 0;
 uint16_t  rtc_cnt = 0;
 uint16_t  training_time = 0;
 unsigned char counter_toggle = 0;
 unsigned char check_training = 0;
+uint16_t rtc_out_train_cnt = 0;
+extern unsigned char cnt_for_clear;
 int main(void)
 {
 	/* Initializes MCU, drivers and middleware */
@@ -82,16 +83,28 @@ int main(void)
 		else if(flash_training_flag == 0xff) {
 
 			if (rtc_cnt != RTC.CNT){
-				training_out_cnt++;
+
 				rtc_cnt = RTC.CNT;
 				training_time++;
 				counter_toggle++;
 				if(counter_toggle >= TOGGLE_TIME && counter_toggle < (TOGGLE_TIME*2)){
+					rd_io_write(RD_PORT_A,LED_AUTO,LED_OFF);
+					rd_io_write(RD_PORT_A,LED_MANUAL,LED_OFF);
+					rd_io_write(RD_LED_PORT,LED_DAY_PHAO1,LED_OFF);
+					rd_io_write(RD_LED_PORT,LED_CAN_PHAO1,LED_OFF);
+					rd_io_write(RD_PORT_B,LED_DAY_PHAO2,LED_OFF);
+					rd_io_write(RD_PORT_B,LED_CAN_PHAO2,LED_OFF);
 					rd_io_write(RD_PORT_B,PUM,0);
 				}
 				else if(counter_toggle >= (TOGGLE_TIME*2)){
 					counter_toggle = 0;
 					rd_io_write(RD_PORT_B,PUM,1);
+					rd_io_write(RD_PORT_A,LED_AUTO,LED_ON);
+					rd_io_write(RD_PORT_A,LED_MANUAL,LED_ON);
+					rd_io_write(RD_LED_PORT,LED_DAY_PHAO1,LED_ON);
+					rd_io_write(RD_LED_PORT,LED_CAN_PHAO1,LED_ON);
+					rd_io_write(RD_PORT_B,LED_DAY_PHAO2,LED_ON);
+					rd_io_write(RD_PORT_B,LED_CAN_PHAO2,LED_ON);
 				}
 			}
 			
@@ -99,13 +112,31 @@ int main(void)
 				flash_training_flag = 1;
 				training_time = 0;
 				FLASH_0_write_eeprom_byte(FLASH_ADDR,flash_training_flag);
+				rd_blink_led();
 			}
 			else{
 				if(!rd_io_read(RD_PORT_B,BUTTON_PIN)){
-					if (training_out_cnt >= 5){
-						flash_training_flag = 1;
-						training_time = 0;
-						FLASH_0_write_eeprom_byte(FLASH_ADDR,flash_training_flag);
+					check_out_train++;
+					training_out_cnt = 0;
+					cnt_for_clear = 0;
+					while(!rd_io_read(RD_PORT_B,BUTTON_PIN)){
+						
+						if (rtc_out_train_cnt != RTC.CNT){
+							training_out_cnt++;
+							rtc_out_train_cnt = RTC.CNT;
+						}
+						
+						if (training_out_cnt >= 5){
+							if(check_out_train >= 5){
+								check_out_train = 0;
+								flash_training_flag = 1;
+								training_time = 0;
+								FLASH_0_write_eeprom_byte(FLASH_ADDR,flash_training_flag);
+								rd_blink_led();
+							}
+							else check_out_train = 0;
+						}
+							__builtin_avr_wdr();
 					}
 				}
 				else{
@@ -113,6 +144,7 @@ int main(void)
 				}
 			}
 		}
+		rd_clear_check_ou_in(&check_in_train,&check_out_train);
 	__builtin_avr_wdr();
 	}
 }
